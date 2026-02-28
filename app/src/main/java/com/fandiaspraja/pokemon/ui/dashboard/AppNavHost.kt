@@ -34,10 +34,8 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
 
     object Detail : Screen("detail/{pokemonName}") { // 1. Add argument placeholder
-        // 2. Add the createRoute function
         fun createRoute(pokemonName: String) = "detail/$pokemonName"
     }
-//    object Detail : Screen("detail")
 
 }
 
@@ -51,7 +49,6 @@ fun AppNavHost(
         startDestination = Screen.Splash.route,
         modifier = modifier
     ) {
-        // 🔹 SPLASH (AUTO REDIRECT)
         composable(Screen.Splash.route) {
             val viewModel: SplashViewModel = koinViewModel()
 
@@ -70,7 +67,6 @@ fun AppNavHost(
             )
         }
 
-        // 🔹 LOGIN
         composable(Screen.Login.route) {
             val viewModel: LoginViewModel = koinViewModel()
 
@@ -87,7 +83,6 @@ fun AppNavHost(
             )
         }
 
-        // 🔹 REGISTER
         composable(Screen.Register.route) {
             val viewModel: RegisterViewModel = koinViewModel()
 
@@ -100,13 +95,11 @@ fun AppNavHost(
             )
         }
 
-        // 🔹 HOME (LIST POKEMON)
         composable(Screen.Home.route) {
             val viewModel: HomeViewModel = koinViewModel()
 
             val onPokemonClick = remember<(Pokemon) -> Unit> {
                 { pokemon ->
-                    // This now works because createRoute is defined
                     navController.navigate(Screen.Detail.createRoute("${pokemon.name}"))
                     navController.navigate(Screen.Detail.createRoute("${pokemon.name}"))
                 }
@@ -118,7 +111,6 @@ fun AppNavHost(
             )
         }
 
-        // 🔹 DETAIL
         composable(
             route = Screen.Detail.route,
             arguments = listOf(navArgument("pokemonName") { type = NavType.StringType })
@@ -138,14 +130,13 @@ fun AppNavHost(
                     onBack = { navController.popBackStack() },
                 )
             } else {
-                // Optional: Handle the case where the name is missing
+                // Handle the case where the name is missing
                 Text("Error: Pokemon name not provided.")
             }
 
         }
 
 
-        // 🔹 PROFILE (USER LOGIN)
         composable(Screen.Profile.route) {
             val viewModel: ProfileViewModel = koinViewModel()
 

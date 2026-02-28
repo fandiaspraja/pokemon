@@ -80,7 +80,7 @@ object DataMapper {
                 id = extractIdFromUrl("${data.url}"),
                 name = "${data.name}",
                 url = "${data.url}",
-                index = offset + i // 🔥 ini kuncinya
+                index = offset + i
             )
         }
     }

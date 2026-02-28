@@ -48,58 +48,6 @@ fun HomeScreen(
 
     val pagingItems = viewModel.pokemons.collectAsLazyPagingItems()
 
-
-//    val pokemonState by viewModel.pokemonList.collectAsState()
-//
-//    when (val resource = pokemonState) {
-//        is Resource.Loading -> {
-//            // Show a centered loading indicator
-//            Box(
-//                modifier = Modifier.fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                CircularProgressIndicator()
-//            }
-//        }
-//        is Resource.Success -> {
-//            // On success, get the data and display it in a LazyColumn
-//            val pokemons = resource.data
-//            Log.d("home", "pokemons: ${pokemons?.size}")
-//            if (pokemons != null) {
-//                LazyColumn {
-//                    // 3. Use the 'items' extension that takes a List
-//                    items(pokemons) { pokemon ->
-//                        Text(
-//                            text = "${pokemon.name}",
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .clickable { pokemon.name?.let { onClickDetail(it) } }
-//                                .padding(16.dp)
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//        is Resource.Error -> {
-//            // On error, show a centered error message
-//            Box(
-//                modifier = Modifier.fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Text("Error: ${resource.message}")
-//            }
-//        }
-//
-//        else -> {
-//            Box(
-//                modifier = Modifier.fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Text("Error: ${resource.message}")
-//            }
-//        }
-//    }
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -125,9 +73,6 @@ fun HomeScreen(
 
             LazyColumn (
                 modifier = Modifier
-//                .padding(innerPadding)
-//                .fillMaxWidth()
-//                .wrapContentHeight()
                     .fillMaxSize()
             ) {
                 val filteredItems = (0 until pagingItems.itemCount).mapNotNull { index ->
@@ -211,39 +156,6 @@ fun HomeScreen(
                         }
                     }
                 }
-
-//                items(
-//                    count = pagingItems.itemCount,
-//                    key = { index -> pagingItems[index]?.id ?: index }
-//                ) { index ->
-//                    val item = pagingItems[index]
-//
-//                    item?.let {
-//                        Card(
-//                            colors = CardDefaults.cardColors(
-//                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-//                            ),
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .height(100.dp)
-//                                .padding(horizontal = 16.dp, vertical = 8.dp) // Add padding around the card
-//                                .clickable { // Move the clickable modifier here
-//                                    Log.d("NAV", "klik: ${item.name}")
-//                                    onClickDetail(item)
-//                                },
-//                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Give it a slight shadow
-//                        ) {
-//                            // The Text now lives inside the Card
-//                            Text(
-//                                text = "${item.name}",
-//                                fontSize = 18.sp,
-//                                fontWeight = FontWeight.Bold,
-//                                modifier = Modifier
-//                                    .padding( horizontal = 16.dp, vertical = 24.dp) // Add padding inside the card
-//                            )
-//                        }
-//                    }
-//                }
 
                 pagingItems.apply {
                     when {

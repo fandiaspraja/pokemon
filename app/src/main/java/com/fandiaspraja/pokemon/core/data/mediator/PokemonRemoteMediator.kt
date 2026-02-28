@@ -32,7 +32,6 @@ class PokemonRemoteMediator(
             LoadType.APPEND -> {
                 val lastItem = state.lastItemOrNull()
 
-                // 🔥 penting: kalau belum ada item, jangan lanjut load
                 if (lastItem == null) {
                     return MediatorResult.Success(endOfPaginationReached = true)
                 }
@@ -65,14 +64,12 @@ class PokemonRemoteMediator(
                 offset
             )
 
-            // 🔥 REFRESH = clear DB
             if (loadType == LoadType.REFRESH) {
                 local.clearAllPokemon()
             }
 
             local.insertAllPokemon(entities)
 
-            // 🔥 gunakan next dari API (PALING AKURAT)
             val endOfPagination = apiResult.next == null
 
             MediatorResult.Success(

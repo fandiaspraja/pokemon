@@ -19,36 +19,7 @@ class HomeViewModel(private val pokemonUseCase: PokemonUseCase) : ViewModel() {
     private val _pokemonList = MutableStateFlow<Resource<List<Pokemon>>>(Resource.Loading())
     val pokemonList: StateFlow<Resource<List<Pokemon>>> = _pokemonList
 
-//    init {
-//        fetchPokemonList()
-//    }
-
-//    private fun fetchPokemonList() {
-//        // Gunakan pola onEach + launchIn
-//        pokemonUseCase.getPokemonRemote(limit = 10, offset = 1)
-//            .onEach { result ->
-//                Log.d("HomeViewModel", "Received in ViewModel: $result, Data: ${result.data?.size}")
-//                _pokemonList.value = result
-//            }
-//            .launchIn(viewModelScope) // Meluncurkan koleksi di viewModelScope
-//    }
-
-//    private fun fetchPokemonList() {
-//        viewModelScope.launch {
-//            pokemonUseCase.getPokemonRemote(limit = 10, offset = 1).collect {
-//                Log.d("HomeViewModel", "pokemonList: ${it.data}")
-//                _pokemonList.value = it
-//            }
-//        }
-//    }
 
     val pokemons = pokemonUseCase.getPokemons()
         .cachedIn(viewModelScope)
-
-    private val _query = MutableStateFlow("")
-    val query: StateFlow<String> = _query
-
-    fun setQuery(q: String) {
-        _query.value = q
-    }
 }

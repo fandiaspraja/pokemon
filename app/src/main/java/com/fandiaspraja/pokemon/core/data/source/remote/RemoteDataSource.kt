@@ -13,29 +13,6 @@ import kotlinx.coroutines.flow.flowOn
 
 class RemoteDataSource(private val apiService: ApiService) {
 
-//    suspend fun getPokemons(
-//        limit: Int,
-//        offset: Int
-//    ): Flow<ApiResponse<List<PokemonResponse>>> {
-//        return flow {
-//            try {
-//                val response = apiService.getPokemons(limit = limit, offset = offset)
-//
-//                val data = response.results ?: emptyList()
-//
-//                if (data.isNotEmpty()) {
-//                    emit(ApiResponse.Success(data))   // ⬅️ kirim LIST langsung
-//                } else {
-//                    emit(ApiResponse.Empty)
-//                }
-//
-//            } catch (e: Exception) {
-//                emit(ApiResponse.Error(e.toString()))
-//                Log.e("RemoteDataSource", e.toString())
-//            }
-//        }.flowOn(Dispatchers.IO)
-//    }
-
     suspend fun getPokemons(limit: Int, offset: Int) : Flow<ApiResponse<PokemonListResponse>> {
         return flow {
             try {

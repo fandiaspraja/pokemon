@@ -56,7 +56,6 @@ fun DetailScreen(
     val state by viewModel.detail.collectAsState()
 
     LaunchedEffect(pokemonName) {
-        Log.d("DETAIL", "terima name: $pokemonName")
         viewModel.getDetail(pokemonName)
     }
 
@@ -111,21 +110,18 @@ fun DetailScreen(
                                     modifier = Modifier.size(140.dp)
                                 )
 
-                                // 🔹 NAME
                                 Text(
                                     text = "${data.name?.uppercase()}",
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold
                                 )
 
-                                // 🔹 TYPES
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     data.types?.forEach {
                                         TypeBadge("${it?.type?.name}")
                                     }
                                 }
 
-                                // 🔹 INFO CARD
                                 PokemonCard {
                                     Text("Information", fontWeight = FontWeight.Bold)
 
@@ -135,7 +131,6 @@ fun DetailScreen(
 
                                 }
 
-                                // 🔹 ABILITIES CARD
                                 PokemonCard {
                                     Text("Abilities", fontWeight = FontWeight.Bold)
 
@@ -144,7 +139,6 @@ fun DetailScreen(
                                     }
                                 }
 
-                                // 🔹 STATS CARD
                                 PokemonCard {
                                     Text("Stats", fontWeight = FontWeight.Bold)
 

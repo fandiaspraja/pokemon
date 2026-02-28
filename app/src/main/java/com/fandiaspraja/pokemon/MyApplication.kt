@@ -33,16 +33,6 @@ class MyApplication: Application() {
                 )
 
             )
-//            KoinApplication.modules(
-//                listOf(
-//                    databaseModule,
-//                    networkModule,
-//                    repositoryModule,
-//                    useCaseModule,
-//                    viewModelModule,
-//                    dataStoreModule
-//                )
-//            )
         }
     }
 }

@@ -32,58 +32,6 @@ class PokemonRepository (
     private val localDataSource : LocalDataSource,
     private val appExecutors: AppExecutors
 ) : IPokemonRepository {
-//    override fun getPokemonRemote(
-//        limit: Int,
-//        offset: Int
-//    ): Flow<Resource<List<Pokemon>>> =
-//        object : NetworkBoundResource<List<Pokemon>, List<PokemonResponse>>(appExecutors) {
-//            override fun loadFromDB(): Flow<List<Pokemon>> {
-//
-//                return localDataSource.getAllLocalPokemon().map {
-//                    Log.d("PokemonRepository", "loadFromDB: ${it.size}")
-//
-//                    DataMapper.mapListEntityToDomainPokemons(it) }
-//            }
-//
-//            override fun shouldFetch(data: List<Pokemon>?): Boolean =
-//                data == null || data.isEmpty()
-//
-//            override suspend fun createCall(): Flow<ApiResponse<List<PokemonResponse>>> {
-//                return remoteDataSource.getPokemons(limit = limit, offset = offset).map { apiResponse ->
-//                    // Hapus 'as' dan biarkan 'when' menangani tipe secara otomatis
-//                    when (apiResponse) {
-//                        is ApiResponse.Success -> {
-//                            // 1. Ambil list dari response (yang mungkin masih nullable)
-//                            val nullableList = apiResponse.data
-//
-//                            // 2. Filter item yang null dari list.
-//                            //    Ini PENTING untuk memastikan tipenya menjadi List<PokemonResponse>
-//                            val nonNullList = nullableList()
-//
-//                            Log.d("PokemonRepository", "pokemonList from network: ${nonNullList.size} items")
-//
-//                            // 3. Kirim list yang sudah bersih dari null
-//                            ApiResponse.Success(nonNullList)
-//                        }
-//
-//                        is ApiResponse.Error -> {
-//                            ApiResponse.Error(apiResponse.errorMessage)
-//                        }
-//
-//                        is ApiResponse.Empty -> {
-//                            ApiResponse.Empty
-//                        }
-//                    }
-//                }
-//            }
-//
-//            override suspend fun saveCallResult(data: List<PokemonResponse>) {
-////                Log.d("PokemonRepository", "saveCallResul tResponse: ${data.size} items")
-////                val tourismList = DataMapper.mapListResponseToEntityPokemons(data)
-////                Log.d("PokemonRepository", "saveCallResult: ${tourismList.size} items")
-////                localDataSource.insertAllPokemon(tourismList)
-//            }
-//        }.asFlow()
 
     @OptIn(ExperimentalPagingApi::class)
     override fun getPokemons(): Flow<PagingData<Pokemon>> {
@@ -134,55 +82,6 @@ class PokemonRepository (
         }
     }
 
-
-//    override fun getPokemonDetail(name: String): Flow<Resource<PokemonDetail>> =
-//        object : NetworkBoundResource<PokemonDetail, PokemonDetailResponse>(appExecutors) {
-//
-//            override fun loadFromDB(): Flow<PokemonDetail> {
-//                return flowOf()
-////                return localDataSource.getPokemonByName(name)
-////                    .map { entity ->
-////                        DataMapper.mapEntityToDomainPokemonDetail(entity)
-////                    }
-//            }
-//
-//            override fun shouldFetch(data: PokemonDetail?): Boolean {
-//                return true
-////                data == null // atau tambahkan expired logic
-//            }
-//
-//            override suspend fun createCall(): Flow<ApiResponse<PokemonDetailResponse>> {
-//                return remoteDataSource.getPokemonDetail(name)
-//            }
-//
-//            override suspend fun saveCallResult(data: PokemonDetailResponse) {
-////                val entity = DataMapper.mapResponseToEntityPokemonDetail(data)
-////                localDataSource.insertPokemonDetail(entity)
-//            }
-//
-//        }.asFlow()
-
-
-//    =
-//    object : NetworkBoundResource<PokemonDetail, PokemonDetailResponse>(appExecutors) {
-//
-//        override fun loadFromDB(): Flow<PokemonDetail> {
-//            return localDataSource.getPokemonByName(name)
-//                .map { DataMapper.mapEntityToDomainDetail(it) }
-//        }
-//
-//        override fun shouldFetch(data: PokemonDetail?): Boolean = data == null
-//
-//        override suspend fun createCall(): Flow<ApiResponse<PokemonDetailResponse>> {
-//            return remoteDataSource.getPokemonDetail(name)
-//        }
-//
-//        override suspend fun saveCallResult(data: PokemonDetailResponse) {
-//            val entity = DataMapper.mapDetailResponseToEntity(data)
-//            localDataSource.insertPokemonDetail(entity)
-//        }
-//
-//    }.asFlow()
 
     override suspend fun insertUser(user: User) {
         val entity = DataMapper.mapDomainToEntityUser(user)
