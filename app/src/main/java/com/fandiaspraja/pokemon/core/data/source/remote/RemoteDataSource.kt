@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
-class RemoteDataSource(private val apiService: ApiService) {
+class RemoteDataSource(val apiService: ApiService) {
 
     suspend fun getPokemons(limit: Int, offset: Int) : Flow<ApiResponse<PokemonListResponse>> {
         return flow {

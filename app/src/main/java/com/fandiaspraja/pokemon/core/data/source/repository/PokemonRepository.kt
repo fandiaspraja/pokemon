@@ -7,11 +7,13 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import androidx.room.withTransaction
 import com.fandiaspraja.pokemon.core.utils.DataMapper
 import com.fandiaspraja.pokemon.core.data.NetworkBoundResource
 import com.fandiaspraja.pokemon.core.data.Resource
 import com.fandiaspraja.pokemon.core.data.mediator.PokemonRemoteMediator
 import com.fandiaspraja.pokemon.core.data.source.local.LocalDataSource
+import com.fandiaspraja.pokemon.core.data.source.local.room.PokemonDatabase
 import com.fandiaspraja.pokemon.core.data.source.remote.RemoteDataSource
 import com.fandiaspraja.pokemon.core.data.source.remote.network.ApiResponse
 import com.fandiaspraja.pokemon.core.data.source.remote.response.PokemonDetailResponse
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class PokemonRepository (
+    private val db: PokemonDatabase,
     private val remoteDataSource : RemoteDataSource,
     private val localDataSource : LocalDataSource,
     private val appExecutors: AppExecutors
@@ -35,28 +38,64 @@ class PokemonRepository (
 
     @OptIn(ExperimentalPagingApi::class)
     override fun getPokemons(): Flow<PagingData<Pokemon>> {
+
         return Pager(
             config = PagingConfig(
                 pageSize = 10,
+                enablePlaceholders = false,
                 initialLoadSize = 10,
-                prefetchDistance = 5,
-                enablePlaceholders = false
+                prefetchDistance = 2
             ),
+
             remoteMediator = PokemonRemoteMediator(
-                remote = remoteDataSource,
-                local = localDataSource
+                db = db,
+                api = remoteDataSource.apiService // ⬅️ dari RemoteDataSource kamu
             ),
+
             pagingSourceFactory = {
                 localDataSource.getAllPokemons()
             }
-        ).flow.map { pagingData ->
-            pagingData.map { entity ->
-                Log.d("PokemonRepository", "entitas: $entity")
 
+        ).flow.map { pagingData ->
+
+            pagingData.map { entity ->
                 DataMapper.mapEntityToDomainPokemon(entity)
             }
+
         }
     }
+
+    override suspend fun refresh() {
+        db.withTransaction {
+            localDataSource.clearAllPokemon()
+            db.pokemonRemoteKeysDao().clearRemoteKeys()
+        }
+    }
+
+//    @OptIn(ExperimentalPagingApi::class)
+//    override fun getPokemons(): Flow<PagingData<Pokemon>> {
+//        return Pager(
+//            config = PagingConfig(
+//                pageSize = 10,
+//                initialLoadSize = 10,
+//                prefetchDistance = 5,
+//                enablePlaceholders = false
+//            ),
+//            remoteMediator = PokemonRemoteMediator(
+//                remote = remoteDataSource,
+//                local = localDataSource
+//            ),
+//            pagingSourceFactory = {
+//                localDataSource.getAllPokemons()
+//            }
+//        ).flow.map { pagingData ->
+//            pagingData.map { entity ->
+//                Log.d("PokemonRepository", "entitas: $entity")
+//
+//                DataMapper.mapEntityToDomainPokemon(entity)
+//            }
+//        }
+//    }
 
     override fun getPokemonDetail(name: String): Flow<Resource<PokemonDetail>> = flow {
         emit(Resource.Loading())

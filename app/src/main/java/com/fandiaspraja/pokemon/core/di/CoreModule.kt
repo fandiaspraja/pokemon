@@ -59,7 +59,7 @@ val repositoryModule = module {
     single { LocalDataSource(get(), get()) }
     single { RemoteDataSource(get()) }
     factory { AppExecutors() }
-    single<IPokemonRepository> { PokemonRepository(get(), get(), get()) }
+    single<IPokemonRepository> { PokemonRepository(get(), get(), get(), get()) }
 }
 
 val dataStoreModule = module {

@@ -11,6 +11,9 @@ interface PokemonUseCase {
 
     fun getPokemons(): Flow<PagingData<Pokemon>>
 
+    suspend fun refresh()
+
+
     fun getPokemonDetail(name: String): Flow<Resource<PokemonDetail>>
 
 //    user local data

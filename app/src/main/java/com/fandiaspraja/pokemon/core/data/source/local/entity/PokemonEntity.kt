@@ -9,4 +9,4 @@ data class PokemonEntity(
     val name: String,
     val url: String,
     val index: Int
-    )
+)

@@ -12,6 +12,8 @@ class PokemonInteractor(
     private val pokemonRepository: IPokemonRepository
 ): PokemonUseCase {
 
+    override suspend fun refresh() = pokemonRepository.refresh()
+
     override fun getPokemons(): Flow<PagingData<Pokemon>> = pokemonRepository.getPokemons()
 
     override fun getPokemonDetail(name: String): Flow<Resource<PokemonDetail>> = pokemonRepository.getPokemonDetail(name)
