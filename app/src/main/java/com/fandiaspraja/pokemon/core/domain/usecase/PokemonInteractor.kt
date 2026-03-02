@@ -12,6 +12,8 @@ class PokemonInteractor(
     private val pokemonRepository: IPokemonRepository
 ): PokemonUseCase {
 
+    override suspend fun refresh() = pokemonRepository.refresh()
+
     override fun getPokemons(): Flow<PagingData<Pokemon>> = pokemonRepository.getPokemons()
 
     override fun getPokemonDetail(name: String): Flow<Resource<PokemonDetail>> = pokemonRepository.getPokemonDetail(name)
@@ -39,5 +41,8 @@ class PokemonInteractor(
     override suspend fun insertAllPokemon(data: List<Pokemon>) = pokemonRepository.insertAllPokemon(data)
 
     override suspend fun clearAllPokemon() = pokemonRepository.clearAllPokemon()
+
+    override fun searchPokemons(query: String): Flow<PagingData<Pokemon>> =
+        pokemonRepository.searchPokemons(query)
 
 }

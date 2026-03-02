@@ -23,7 +23,7 @@ interface PokemonDao {
     fun getAllLocalPokemon(): Flow<List<PokemonEntity>>
 
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllPokemon(data: List<PokemonEntity>)
 
     @Query("DELETE FROM pokemon")
@@ -31,4 +31,7 @@ interface PokemonDao {
 
     @Query("SELECT * FROM pokemon WHERE name = :name LIMIT 1")
     fun getPokemonByName(name: String): Flow<PokemonEntity?>
+
+    @Query("SELECT * FROM pokemon WHERE name LIKE '%' || :query || '%' ORDER BY `index` ASC")
+    fun searchPokemons(query: String): PagingSource<Int, PokemonEntity>
 }

@@ -189,7 +189,9 @@ fun LoginScreen(
             when (state) {
                 is Resource.Loading -> CircularProgressIndicator()
                 is Resource.Success -> onLoginSuccess()
-                is Resource.Error -> (state as Resource.Error).message?.let { Text(it) }
+                is Resource.Error -> (state as Resource.Error).message?.let {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
                 else -> {}
             }
         }

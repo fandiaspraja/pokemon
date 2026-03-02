@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.Flow
 interface IPokemonRepository {
 
     fun getPokemons(): Flow<PagingData<Pokemon>>
+    suspend fun refresh()
+
 
     fun getPokemonDetail(name: String): Flow<Resource<PokemonDetail>>
 
@@ -25,5 +27,8 @@ interface IPokemonRepository {
 
     suspend fun insertAllPokemon(data: List<Pokemon>)
     suspend fun clearAllPokemon()
+
+    fun searchPokemons(query: String): Flow<PagingData<Pokemon>>
+
 
 }

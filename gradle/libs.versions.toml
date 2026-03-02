@@ -41,6 +41,9 @@ pagingVersion = "3.4.1"
 #data store
 dataStore = "1.2.0"
 
+#workmanager
+workVersion = "2.11.1"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -97,6 +100,8 @@ paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pag
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "dataStore" }
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "dataStore" }
 
+#workmanager
+work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workVersion" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
