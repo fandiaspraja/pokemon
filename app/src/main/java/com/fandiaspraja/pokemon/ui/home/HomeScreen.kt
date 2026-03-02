@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.fandiaspraja.pokemon.core.data.Resource
 import com.fandiaspraja.pokemon.core.domain.model.Pokemon
 import kotlin.text.replaceFirstChar
@@ -43,27 +45,19 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onClickDetail: (Pokemon) -> Unit
 ) {
-
-    var searchQuery by remember { mutableStateOf("") }
-
+    val searchQuery by viewModel.searchQuery.collectAsState()
     val pagingItems = viewModel.pokemons.collectAsLazyPagingItems()
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Pokedex") },
-            )
+            CenterAlignedTopAppBar(title = { Text("Pokedex") })
         }
     ) { innerPadding ->
-
-
-        Column(
-            modifier = Modifier.padding(innerPadding)
-        ) {
+        Column(modifier = Modifier.padding(innerPadding)) {
 
             TextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+                onValueChange = { viewModel.onSearchQueryChange(it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -71,37 +65,52 @@ fun HomeScreen(
                 singleLine = true
             )
 
-            LazyColumn (
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                val filteredItems = (0 until pagingItems.itemCount).mapNotNull { index ->
-                    pagingItems[index]
-                }.filter {
-                    // Logika filter: cocokkan nama pokemon dengan query (case-insensitive)
-                    it.name!!.contains(searchQuery, ignoreCase = true)
+            // Handle refresh loading/error di luar LazyColumn
+            when {
+                pagingItems.loadState.refresh is LoadState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) { CircularProgressIndicator() }
+                    return@Scaffold
                 }
+                pagingItems.loadState.refresh is LoadState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Error loading data")
+                            Button(onClick = { pagingItems.retry() }) { Text("Retry") }
+                        }
+                    }
+                    return@Scaffold
+                }
+            }
 
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+
+                // ✅ BENAR: pakai count langsung, filter per item saat render
                 items(
-                    items = filteredItems,
-                    key = { pokemon -> pokemon.id }
-                ) { item ->
+                    count = pagingItems.itemCount,
+                    key = pagingItems.itemKey { it.id }
+                ) { index ->
+                    val item = pagingItems[index] ?: return@items
+
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .clickable {
-                                Log.d("NAV", "klik: ${item.name}")
-                                onClickDetail(item)
-                            },
+                            .clickable { onClickDetail(item) },
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        // The Text now lives inside the Card
                         Text(
-                            text = item.name!!.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
+                            text = item.name!!.replaceFirstChar {
+                                if (it.isLowerCase()) it.titlecase() else it.toString()
+                            },
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -111,101 +120,33 @@ fun HomeScreen(
                     }
                 }
 
-                // Jangan hapus blok ini, ini untuk menangani state loading dari Paging
-                if (searchQuery.isEmpty()) { // Hanya tampilkan loader jika tidak sedang mencari
-                    pagingItems.apply {
-                        when {
-                            loadState.refresh is LoadState.Loading -> item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillParentMaxSize(), // Gunakan fillParentMaxSize untuk loading awal
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
-
-                            loadState.append is LoadState.Loading -> item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
-
-                            loadState.refresh is LoadState.Error -> item {
-                                Box(
-                                    modifier = Modifier.fillParentMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("Error loading data")
-                                }
-                            }
-
-                            loadState.append is LoadState.Error -> item {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("Error loading more items")
-                                }
-                            }
-                        }
-                    }
-                }
-
-                pagingItems.apply {
+                // ✅ Satu blok loadState untuk append saja
+                item {
                     when {
-                        loadState.refresh is LoadState.Loading -> item {
+                        pagingItems.loadState.append is LoadState.Loading -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }                    }
-
-                        loadState.append is LoadState.Loading -> item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }                    }
-
-                        loadState.refresh is LoadState.Error -> item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("Error loading data")
-                            }
+                            ) { CircularProgressIndicator() }
                         }
-
-                        loadState.append is LoadState.Error -> item {
+                        pagingItems.loadState.append is LoadState.Error -> {
                             Box(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Error loading more items")
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("Error loading more")
+                                    Button(onClick = { pagingItems.retry() }) { Text("Retry") }
+                                }
                             }
                         }
                     }
                 }
-
             }
         }
-
-
     }
-
-
 }

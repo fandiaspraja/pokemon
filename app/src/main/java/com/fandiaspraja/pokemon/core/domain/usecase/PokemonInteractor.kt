@@ -42,4 +42,7 @@ class PokemonInteractor(
 
     override suspend fun clearAllPokemon() = pokemonRepository.clearAllPokemon()
 
+    override fun searchPokemons(query: String): Flow<PagingData<Pokemon>> =
+        pokemonRepository.searchPokemons(query)
+
 }

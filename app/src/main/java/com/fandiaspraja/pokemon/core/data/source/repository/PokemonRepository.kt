@@ -44,7 +44,7 @@ class PokemonRepository (
                 pageSize = 10,
                 enablePlaceholders = false,
                 initialLoadSize = 10,
-                prefetchDistance = 2
+                prefetchDistance = 10
             ),
 
             remoteMediator = PokemonRemoteMediator(
@@ -62,6 +62,25 @@ class PokemonRepository (
                 DataMapper.mapEntityToDomainPokemon(entity)
             }
 
+        }
+    }
+
+    // PokemonRepository
+    override fun searchPokemons(query: String): Flow<PagingData<Pokemon>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                enablePlaceholders = false,
+                initialLoadSize = 10,
+                prefetchDistance = 10
+            ),
+            pagingSourceFactory = {
+                localDataSource.searchPokemons(query)  // ✅ dari Room, tanpa RemoteMediator
+            }
+        ).flow.map { pagingData ->
+            pagingData.map { entity ->
+                DataMapper.mapEntityToDomainPokemon(entity)
+            }
         }
     }
 

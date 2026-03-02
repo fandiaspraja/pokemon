@@ -27,4 +27,6 @@ interface PokemonUseCase {
     fun getPokemonByName(name: String): Flow<Pokemon?>
     suspend fun insertAllPokemon(data: List<Pokemon>)
     suspend fun clearAllPokemon()
+
+    fun searchPokemons(query: String): Flow<PagingData<Pokemon>>
 }

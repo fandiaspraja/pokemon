@@ -17,4 +17,7 @@ interface PokemonRemoteKeysDao {
 
     @Query("DELETE FROM pokemon_remote_keys")
     suspend fun clearRemoteKeys()
+
+    @Query("SELECT * FROM pokemon_remote_keys ORDER BY nextKey DESC LIMIT 1")
+    suspend fun getLastRemoteKey(): PokemonRemoteKeys?
 }

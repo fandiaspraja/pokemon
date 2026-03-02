@@ -27,6 +27,14 @@ class PokemonRemoteMediator(
     private val dao = db.pokemonDao()
     private val keysDao = db.pokemonRemoteKeysDao()
 
+    override suspend fun initialize(): InitializeAction {
+        return if (dao.getPokemonCount() > 0) {
+            InitializeAction.SKIP_INITIAL_REFRESH
+        } else {
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        }
+    }
+
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, PokemonEntity>
@@ -38,22 +46,71 @@ class PokemonRemoteMediator(
                 LoadType.REFRESH -> 0
                 LoadType.PREPEND -> return MediatorResult.Success(true)
                 LoadType.APPEND -> {
-                    val last = state.lastItemOrNull()
-                        ?: return MediatorResult.Success(true)
+                    if (dao.getPokemonCount() == 0) {
+                        return MediatorResult.Success(endOfPaginationReached = false)
+                    }
 
-                    keysDao.remoteKeys(last.id)?.nextKey
-                        ?: return MediatorResult.Success(true)
+                    val last = state.lastItemOrNull()
+                    if (last == null) {
+                        // ✅ Ambil nextKey dari DB dan langsung pakai untuk fetch
+                        val lastKey = keysDao.getLastRemoteKey()
+                        lastKey?.nextKey ?: return MediatorResult.Success(endOfPaginationReached = true)
+                    } else {
+                        // Normal flow
+                        keysDao.remoteKeys(last.id)?.nextKey
+                            ?: return MediatorResult.Success(endOfPaginationReached = true)
+                    }
                 }
+//                LoadType.APPEND -> {
+//                    // ✅ Query langsung ke DB, bukan dari PagingState
+//                    val remoteKey = db.withTransaction {
+//                        keysDao.getLastRemoteKey()  // ambil key terakhir dari DB
+//                    }
+//
+//                    Log.d("Mediator", "APPEND: lastRemoteKey=$remoteKey")
+//
+//                    remoteKey?.nextKey
+//                        ?: return MediatorResult.Success(endOfPaginationReached = true)
+//                }
+//                LoadType.APPEND -> {
+//
+//
+//                    val last = state.lastItemOrNull()
+//                    if (last == null) {
+//                        Log.d("Mediator", "APPEND: lastItem null → stop")
+//                        return MediatorResult.Success(true)
+//                    }
+//
+//                    val remoteKey = keysDao.remoteKeys(last.id)
+//                    Log.d("Mediator", "APPEND: last.id=${last.id}, remoteKey=$remoteKey")
+//
+//                    if (remoteKey?.nextKey == null) {
+//                        Log.d("Mediator", "APPEND: nextKey null → stop")
+//                        return MediatorResult.Success(true)
+//                    }
+//
+//                    remoteKey.nextKey
+//                }
             }
+
+            Log.d("Mediator", "loadType=$loadType, page=$page")  // ← dan ini
 
             val response = api.getPokemons(
                 limit = state.config.pageSize,
                 offset = page
             )
 
+            Log.d("Mediator", "response.results=${response.results.size}")
+            Log.d("Mediator", "sample url=${response.results.firstOrNull()?.url}")
+
+
             val endOfPagination = response.next == null
 
+            Log.d("Mediator", "before transaction")
+
+
             db.withTransaction {
+                Log.d("Mediator", "inside transaction")
 
                 if (loadType == LoadType.REFRESH) {
                     dao.clearAllPokemon()
@@ -61,22 +118,19 @@ class PokemonRemoteMediator(
                 }
 
                 // Use mapNotNull to create a List<PokemonEntity> and filter out any nulls
-                val entities = response.results.mapNotNull { item ->
+                val entities = response.results.mapIndexedNotNull { index, item ->
                     val id = item.url?.trimEnd('/')?.split("/")?.last()?.toIntOrNull()
-
                     id?.let {
                         PokemonEntity(
                             id = it,
                             name = item.name ?: "Unknown",
                             url = item.url ?: "",
-                            // The index is now derived from the entity's position in the non-null list,
-                            // but since your primary key is `id`, this index might not be necessary.
-                            // If you rely on it, consider using mapIndexed and then filterNotNull.
-                            // For simplicity, we can remove the index dependency if not critical.
-                            index = 0 // Or handle index differently if needed
+                            index = page + index   // ✅ index unik per item
                         )
                     }
                 }
+
+                Log.d("Mediator", "entities saved: ${entities.size}")
 
                 if (entities.isNotEmpty()) {
                     val keys = entities.map {
@@ -89,38 +143,19 @@ class PokemonRemoteMediator(
 
                     dao.insertAllPokemon(entities)
                     keysDao.insertAll(keys)
+                    Log.d("Mediator", "insert done")
                 }
 
-
-
-//                val entities = response.results.mapIndexed { index, item ->
-//                    val id = item.url?.trimEnd('/')?.split("/")?.last()?.toInt()
-//
-//                    id?.let {
-//                        PokemonEntity(
-//                            id = it,
-//                            name = "${item.name}",
-//                            url = "${item.url}",
-//                            index = page + index
-//                        )
-//                    }
-//                }
-//
-//                val keys = entities.map {
-//                    PokemonRemoteKeys(
-//                        pokemonId = it?.id ?: 0,
-//                        prevKey = if (page == 0) null else page - state.config.pageSize,
-//                        nextKey = if (endOfPagination) null else page + state.config.pageSize
-//                    )
-//                }
-//
-//                dao.insertAllPokemon(entities)
-//                keysDao.insertAll(keys)
             }
+
+            // Tambah ini
+            val count = dao.getPokemonCount()
+            Log.d("Mediator", "count after insert: $count")
 
             MediatorResult.Success(endOfPagination)
 
         } catch (e: Exception) {
+            Log.e("Mediator", "error: ${e.message}", e)  // pastikan ini ada
             MediatorResult.Error(e)
         }
     }

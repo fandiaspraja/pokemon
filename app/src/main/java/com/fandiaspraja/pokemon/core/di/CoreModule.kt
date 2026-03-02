@@ -22,14 +22,21 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 val databaseModule = module {
-    factory { get<PokemonDatabase>().userDao() }
-    factory { get<PokemonDatabase>().pokemonDao() }
+//    factory { get<PokemonDatabase>().userDao() }
+//    factory { get<PokemonDatabase>().pokemonDao() }
+//    factory { get<PokemonDatabase>().pokemonRemoteKeysDao() }
+
+    single { get<PokemonDatabase>().userDao() }
+    single { get<PokemonDatabase>().pokemonDao() }
+    single { get<PokemonDatabase>().pokemonRemoteKeysDao() }
 
     single {
         Room.databaseBuilder(
             androidContext(),
-            PokemonDatabase::class.java, "Pokemon.db"
+            PokemonDatabase::class.java, "pokemon.db"
         ).fallbackToDestructiveMigration().build()
+
+
     }
 }
 

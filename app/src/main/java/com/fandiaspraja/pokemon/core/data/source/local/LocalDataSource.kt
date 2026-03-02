@@ -28,4 +28,7 @@ class LocalDataSource(private val userDao: UserDao, private val pokemonDao: Poke
 
     suspend fun getPokemonCount(): Int =
         pokemonDao.getPokemonCount()
+
+    fun searchPokemons(query: String): PagingSource<Int, PokemonEntity> =
+        pokemonDao.searchPokemons(query)
 }
